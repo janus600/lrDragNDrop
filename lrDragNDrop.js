@@ -138,11 +138,11 @@
                             promise = ret;
                         } else {
                             //sync response [true|false]
-                            if(ret) { promise.resolve(item, dropIndex)}
-                            else {promise.reject(item, dropIndex)}
+                            if(ret) { deferred.resolve(item, dropIndex)}
+                            else {deferred.reject(item, dropIndex)}
                         }
                     } else {
-                        promise.resolve(item, dropIndex);
+                        deferred.resolve(item, dropIndex);
                     }
 
                     return promise;
