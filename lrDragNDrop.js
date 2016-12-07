@@ -83,7 +83,9 @@
                     }
 
                     element.bind('dragstart', function (evt) {
-                        store.hold(key, collection[scope.$index], collection, safe);
+                        var item = collection[scope.$index];
+                        item.$prevIndex = scope.$index;
+                        store.hold(key, item, collection, safe);
                         if(angular.isDefined(evt.dataTransfer)) {
                             evt.dataTransfer.setData('text/html', null); //FF/jQuery fix
                         }
@@ -131,7 +133,12 @@
                     var promise = deferred.promise;
 
                     if(attr.lrAcceptFn) {
-                        var ret = $parse(attr.lrAcceptFn)(item, dropIndex);
+                        var fn = $parse(attr.lrAcceptFn);
+                        var ret = fn(scope, {item:item, dropIndex:dropIndex});
+
+                        if(ret === undefined) {
+                            ret = true;
+                        }
 
                         if(ret.then) {
                             //async response using promises
@@ -173,15 +180,23 @@
                                 }
                             }
                         }
+                        item.$class = 'temp-position';
                         scope.$apply(function () {
+                            var clone = ng.copy(item);
+                            collection.splice(dropIndex, 0, item);
                             accept(item, dropIndex)
                                 .then(function() {
-                                    collection.splice(dropIndex, 0, item);
                                     var fn = $parse(attr.lrDropSuccess) || ng.noop;
-                                    fn(scope, {e: evt, item: item, collection: collection});
+                                    fn(scope, {e: evt, item: item, dropIndex: dropIndex});
                                 })
                                 .catch(function() {
-                                    //todo accept reject callback
+                                    collection.splice(dropIndex, 1);
+                                    collection.splice(item.$prevIndex, 0, clone);
+                                })
+                                .finally(function() {
+                                    if(item.$prevIndex) {
+                                        delete item.$prevIndex;
+                                    }
                                 });
                         });
                         evt.preventDefault();
