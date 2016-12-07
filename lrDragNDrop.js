@@ -105,7 +105,7 @@
         };
     }]);
 
-    module.directive('lrDropTarget', ['lrDragStore', 'lrDragHelper', '$parse', function (store, dragHelper, $parse) {
+    module.directive('lrDropTarget', ['lrDragStore', 'lrDragHelper', '$parse', '$q', function (store, dragHelper, $parse, $q) {
         return {
             link: function (scope, element, attr) {
 
