@@ -126,6 +126,28 @@
                     }
                 }
 
+                function accept(item, dropIndex) {
+                    var deferred = $q.defer();
+                    var promise = deferred.promise;
+
+                    if(attr.lrAcceptFn) {
+                        var ret = $parse(attr.lrAcceptFn)(item, dropIndex);
+
+                        if(ret.then) {
+                            //async response using promises
+                            promise = ret;
+                        } else {
+                            //sync response [true|false]
+                            if(ret) { promise.resolve(item, dropIndex)}
+                            else {promise.reject(item, dropIndex)}
+                        }
+                    } else {
+                        promise.resolve(item, dropIndex);
+                    }
+
+                    return promise;
+                }
+
                 if(attr.lrDragData) {
                     scope.$watch(attr.lrDragData, function (newValue) {
                         collection = newValue;
@@ -152,9 +174,15 @@
                             }
                         }
                         scope.$apply(function () {
-                            collection.splice(dropIndex, 0, item);
-                            var fn = $parse(attr.lrDropSuccess) || ng.noop;
-                            fn(scope, {e: evt, item: item, collection: collection});
+                            accept(item, dropIndex)
+                                .then(function() {
+                                    collection.splice(dropIndex, 0, item);
+                                    var fn = $parse(attr.lrDropSuccess) || ng.noop;
+                                    fn(scope, {e: evt, item: item, collection: collection});
+                                })
+                                .catch(function() {
+                                    //todo accept reject callback
+                                });
                         });
                         evt.preventDefault();
                         resetStyle();
