@@ -1,4 +1,4 @@
-(function (ng) {
+define(['angular'], function(ng) {
     'use strict';
 
     function isJqueryEventDataTransfer(){
@@ -224,4 +224,4 @@
             }
         };
     }]);
-})(angular);
+});
